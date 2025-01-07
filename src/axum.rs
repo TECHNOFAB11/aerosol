@@ -35,7 +35,7 @@ pub enum DependencyError {
         name: &'static str,
         /// Error returned by the resource constructor
         #[source]
-        source: anyhow::Error,
+        source: eyre::Error,
     },
 }
 
@@ -52,7 +52,7 @@ impl DependencyError {
             name: type_name::<T>(),
         }
     }
-    pub(crate) fn failed_to_construct<T>(error: impl Into<anyhow::Error>) -> Self {
+    pub(crate) fn failed_to_construct<T>(error: impl Into<eyre::Error>) -> Self {
         Self::FailedToConstruct {
             name: type_name::<T>(),
             source: error.into(),

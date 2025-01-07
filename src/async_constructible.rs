@@ -15,7 +15,7 @@ use crate::{
 #[async_trait]
 pub trait AsyncConstructible: Sized + Any + Send + Sync {
     /// Error type for when resource fails to be constructed.
-    type Error: Into<anyhow::Error> + Send + Sync;
+    type Error: Into<eyre::Error> + Send + Sync;
     /// Construct the resource with the provided application state.
     async fn construct_async(aero: &Aero) -> Result<Self, Self::Error>;
     /// Called after construction with the concrete resource to allow the callee
@@ -48,7 +48,7 @@ impl<T: Constructible> AsyncConstructible for T {
 #[async_trait]
 pub trait IndirectlyAsyncConstructible: Sized + Any + Send + Sync {
     /// Error type for when resource fails to be constructed.
-    type Error: Into<anyhow::Error> + Send + Sync;
+    type Error: Into<eyre::Error> + Send + Sync;
     /// Construct the resource with the provided application state.
     async fn construct_async(aero: &Aero) -> Result<Self, Self::Error>;
     /// Called after construction with the concrete resource to allow the callee
@@ -118,12 +118,12 @@ impl<T: Resource + IndirectlyAsyncConstructible> AsyncConstructibleResource for 
 #[async_trait]
 pub trait AsyncConstructibleResourceList: ResourceList {
     /// Construct every resource in this list in the provided aerosol instance
-    async fn construct_async<R: ResourceList>(aero: &Aero<R>) -> anyhow::Result<()>;
+    async fn construct_async<R: ResourceList>(aero: &Aero<R>) -> eyre::Result<()>;
 }
 
 #[async_trait]
 impl AsyncConstructibleResourceList for HNil {
-    async fn construct_async<R: ResourceList>(_aero: &Aero<R>) -> anyhow::Result<()> {
+    async fn construct_async<R: ResourceList>(_aero: &Aero<R>) -> eyre::Result<()> {
         Ok(())
     }
 }
@@ -132,7 +132,7 @@ impl AsyncConstructibleResourceList for HNil {
 impl<H: AsyncConstructibleResource, T: AsyncConstructibleResourceList>
     AsyncConstructibleResourceList for HCons<H, T>
 {
-    async fn construct_async<R: ResourceList>(aero: &Aero<R>) -> anyhow::Result<()> {
+    async fn construct_async<R: ResourceList>(aero: &Aero<R>) -> eyre::Result<()> {
         aero.try_init_async::<H>().await.map_err(Into::into)?;
         T::construct_async(aero).await
     }
@@ -201,7 +201,7 @@ impl<R: ResourceList> Aero<R> {
 
     /// Convert into a different variant of the Aero type. Any missing required resources
     /// will be automatically asynchronously constructed.
-    pub async fn try_construct_remaining_async<R2, I>(self) -> anyhow::Result<Aero<R2>>
+    pub async fn try_construct_remaining_async<R2, I>(self) -> eyre::Result<Aero<R2>>
     where
         R2: Sculptor<R, I> + ResourceList,
         <R2 as Sculptor<R, I>>::Remainder: AsyncConstructibleResourceList,

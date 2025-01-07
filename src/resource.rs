@@ -36,14 +36,14 @@ pub(crate) fn unwrap_resource<T: Resource>(opt: Option<T>) -> T {
     }
 }
 
-pub(crate) fn unwrap_constructed<T: Resource, U>(res: Result<U, impl Into<anyhow::Error>>) -> U {
+pub(crate) fn unwrap_constructed<T: Resource, U>(res: Result<U, impl Into<eyre::Error>>) -> U {
     match res {
         Ok(x) => x,
         Err(e) => panic!("Failed to construct `{}`: {}", type_name::<T>(), e.into()),
     }
 }
 
-pub(crate) fn unwrap_constructed_hlist<T, U>(res: Result<U, impl Into<anyhow::Error>>) -> U {
+pub(crate) fn unwrap_constructed_hlist<T, U>(res: Result<U, impl Into<eyre::Error>>) -> U {
     match res {
         Ok(x) => x,
         Err(e) => panic!(

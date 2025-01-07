@@ -41,7 +41,7 @@
 //! # struct MagicNumber(i32);
 //! # trait EmailSender: Send + Sync { fn send(&self) {} }
 //! # impl EmailSender for PostmarkClient {}
-//! # impl PostmarkClient { fn new() -> anyhow::Result<Self> { Ok(Self) }}
+//! # impl PostmarkClient { fn new() -> eyre::Result<Self> { Ok(Self) }}
 //! use aerosol::{Aero, Constructible};
 //!
 //! // Here, we can list all the things we want to guarantee are in
@@ -91,7 +91,7 @@
 //! // The `Constructible` trait can be implemented to allow resources to be automatically
 //! // constructed.
 //! impl Constructible for PostmarkClient {
-//!     type Error = anyhow::Error;
+//!     type Error = eyre::Error;
 //!
 //!     fn construct(aero: &Aero) -> Result<Self, Self::Error> {
 //!         PostmarkClient::new(/* initialize using environment variables */)
@@ -109,7 +109,7 @@
 //! }
 //!
 //! impl Constructible for ConnectionPool {
-//!     type Error = anyhow::Error;
+//!     type Error = eyre::Error;
 //!     fn construct(aero: &Aero) -> Result<Self, Self::Error> {
 //!         // ...
 //! #       Ok(ConnectionPool)
@@ -117,7 +117,7 @@
 //! }
 //!
 //! impl Constructible for MessageQueue {
-//!     type Error = anyhow::Error;
+//!     type Error = eyre::Error;
 //!     fn construct(aero: &Aero) -> Result<Self, Self::Error> {
 //!         // ...
 //! #       Ok(MessageQueue)

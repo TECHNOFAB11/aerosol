@@ -11,7 +11,7 @@ use crate::{
 /// Implemented for values which can be constructed from other resources.
 pub trait Constructible: Sized + Any + Send + Sync {
     /// Error type for when resource fails to be constructed.
-    type Error: Into<anyhow::Error> + Send + Sync;
+    type Error: Into<eyre::Error> + Send + Sync;
     /// Construct the resource with the provided application state.
     fn construct(aero: &Aero) -> Result<Self, Self::Error>;
 
@@ -29,7 +29,7 @@ pub trait Constructible: Sized + Any + Send + Sync {
 /// Automatically implemented for values which can be indirectly constructed from other resources.
 pub trait IndirectlyConstructible: Sized + Any + Send + Sync {
     /// Error type for when resource fails to be constructed.
-    type Error: Into<anyhow::Error> + Send + Sync;
+    type Error: Into<eyre::Error> + Send + Sync;
     /// Construct the resource with the provided application state.
     fn construct(aero: &Aero) -> Result<Self, Self::Error>;
     /// Called after construction with the concrete resource to allow the callee
@@ -94,11 +94,11 @@ impl<T: Resource + IndirectlyConstructible> ConstructibleResource for T {}
 /// Automatically implemented for resource lists where every resource can be constructed.
 pub trait ConstructibleResourceList: ResourceList {
     /// Construct every resource in this list in the provided aerosol instance
-    fn construct<R: ResourceList>(aero: &Aero<R>) -> anyhow::Result<()>;
+    fn construct<R: ResourceList>(aero: &Aero<R>) -> eyre::Result<()>;
 }
 
 impl ConstructibleResourceList for HNil {
-    fn construct<R: ResourceList>(_aero: &Aero<R>) -> anyhow::Result<()> {
+    fn construct<R: ResourceList>(_aero: &Aero<R>) -> eyre::Result<()> {
         Ok(())
     }
 }
@@ -106,7 +106,7 @@ impl ConstructibleResourceList for HNil {
 impl<H: ConstructibleResource, T: ConstructibleResourceList> ConstructibleResourceList
     for HCons<H, T>
 {
-    fn construct<R: ResourceList>(aero: &Aero<R>) -> anyhow::Result<()> {
+    fn construct<R: ResourceList>(aero: &Aero<R>) -> eyre::Result<()> {
         aero.try_init::<H>().map_err(Into::into)?;
         T::construct(aero)
     }
@@ -175,7 +175,7 @@ impl<R: ResourceList> Aero<R> {
 
     /// Convert into a different variant of the Aero type. Any missing required resources
     /// will be automatically constructed.
-    pub fn try_construct_remaining<R2, I>(self) -> anyhow::Result<Aero<R2>>
+    pub fn try_construct_remaining<R2, I>(self) -> eyre::Result<Aero<R2>>
     where
         R2: Sculptor<R, I> + ResourceList,
         <R2 as Sculptor<R, I>>::Remainder: ConstructibleResourceList,
